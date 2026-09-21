@@ -23,6 +23,10 @@ Supported image formats: JPEG, PNG, HEIC/HEIF. Images can be loaded via drag-and
 
 tkinter, Roboflow, OpenCV, Pillow, NumPy, SciPy, Matplotlib, ReportLab, pillow-heif
 
+## Android
+
+A native Android implementation for phones and tablets is available in [`Android/`](Android/README.md). It includes image and camera analysis, mask editing, named sessions, growth comparison, batch analysis, foreground timed capture, and PDF/CSV/session export. The supplied **MoldEZ-Android-1.0.1.apk** is preconfigured for the same shared Roboflow service as the desktop app; no API-key entry is needed. Detection requires internet and sends the selected photograph over HTTPS. See the Android README for build instructions and measurement compatibility details. The macOS desktop source additionally requires PySide6.
+
 ## Authors & Contributors
 
 Mohammed Ayan Mahmood - Primary Developer, Department of Chemistry  

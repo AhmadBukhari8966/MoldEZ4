@@ -1,0 +1,11 @@
+<resources>
+    <style name="Theme.MoldEZ" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowActionModeOverlay">true</item>
+        <item name="android:colorAccent">#16877F</item>
+        <item name="android:windowBackground">#F3F6FA</item>
+        <item name="android:statusBarColor">#20364E</item>
+        <item name="android:navigationBarColor">#F3F6FA</item>
+    </style>
+</resources>

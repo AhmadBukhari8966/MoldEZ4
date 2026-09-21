@@ -1,0 +1,42 @@
+name: Android
+
+on:
+  push:
+    paths: ["Android/**", ".github/workflows/android.yml"]
+  pull_request:
+    paths: ["Android/**", ".github/workflows/android.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Android
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+      - name: Install Android build platform
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - name: Build, test, and lint
+        run: ./gradlew --no-daemon assembleDebug testDebugUnitTest lintDebug
+      - name: Upload installable test app
+        uses: actions/upload-artifact@v4
+        with:
+          name: MoldEZ-Android-debug
+          path: Android/app/build/outputs/apk/debug/app-debug.apk
+      - name: Upload verification reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Android-verification
+          path: |
+            Android/app/build/reports/tests/testDebugUnitTest
+            Android/app/build/reports/lint-results-debug.html
