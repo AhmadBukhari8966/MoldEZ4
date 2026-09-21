@@ -25,7 +25,7 @@ tkinter, Roboflow, OpenCV, Pillow, NumPy, SciPy, Matplotlib, ReportLab, pillow-h
 
 ## Android
 
-A native Android implementation for phones and tablets is available in [`Android/`](Android/README.md). It includes image and camera analysis, mask editing, named sessions, growth comparison, batch analysis, foreground timed capture, and PDF/CSV/session export. The supplied **MoldEZ-Android-1.0.1.apk** is preconfigured for the same shared Roboflow service as the desktop app; no API-key entry is needed. Detection requires internet and sends the selected photograph over HTTPS. See the Android README for build instructions and measurement compatibility details. The macOS desktop source additionally requires PySide6.
+A native Android implementation for phones and tablets is available as a source preview in [`Android/`](Android/README.md). It includes image and camera analysis, mask editing, named sessions, growth comparison, batch analysis, foreground timed capture, and PDF/CSV/session export. The preconfigured Android APK is kept private; the public release provides source and documentation only, and CI does not upload APKs. The standalone source archive excludes the raw service credential and requires maintainers to set `MOLDEZ_ROBOFLOW_API_KEY` when building. Detection requires internet and sends the selected photograph over HTTPS. See the Android README for full-repository build behavior and measurement compatibility details. The macOS desktop source additionally requires PySide6.
 
 ## Authors & Contributors
 

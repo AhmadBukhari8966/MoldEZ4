@@ -1,6 +1,10 @@
 # MoldEZ for Android
 
-A native Kotlin/Jetpack Compose companion to MoldEZ Mark IV, built for phones and tablets. Android 8.0 (API 26) or later is required. Version 1.0.1 comes preconfigured for the project's existing Roboflow dish and culture models and stores photographs, masks, measurements, and sessions locally.
+A native Kotlin/Jetpack Compose companion to MoldEZ Mark IV, built for phones and tablets. Android 8.0 (API 26) or later is required. Version 1.0.1 uses the project's existing Roboflow dish and culture models and stores photographs, masks, measurements, and sessions locally.
+
+## Availability
+
+The public preview provides source code, documentation, and source checksums. The preconfigured APK is kept private and is not included in the public release or uploaded by CI. Maintainers can build an APK locally using the instructions below.
 
 ## Included workflows
 
@@ -16,14 +20,14 @@ A native Kotlin/Jetpack Compose companion to MoldEZ Mark IV, built for phones an
 - Import an Android session bundle with its source images and edited masks intact.
 - Switch between light and dark appearance; layouts adapt to phone and tablet windows.
 
-## First run
+## First run after building
 
-1. Install **MoldEZ-Android-1.0.1.apk**, then open **MoldEZ**. No API-key setup is needed.
+1. Install your locally built APK, then open **MoldEZ**. The service credential is configured during the build; there is no API-key entry screen in the app.
 2. Open **Analyze**, choose or capture a photograph, enter the dish diameter, and tap **Run detection**.
 3. Review the overlay. Use **Edit mask** if needed, then **Save analysis**.
 4. Open **Sessions** to compare, export, or organize your results.
 
-Detection uploads the selected image to Roboflow over HTTPS and requires internet. The supplied APK uses the same shared project service as the desktop app, including access to `moldez_dish_finder/4` and `moldez_segmentation/6`. Requests use the project's inference allowance; model access and availability depend on that service. Credentials are excluded from session and report exports.
+Detection uploads the selected image to Roboflow over HTTPS and requires internet. Builds configured with the existing project credential use the same shared service as the desktop app, including access to `moldez_dish_finder/4` and `moldez_segmentation/6`. Requests use that service account's inference allowance; model access and availability depend on the configured service. Credentials are excluded from session and report exports.
 
 ## Measurement behavior
 
@@ -58,7 +62,7 @@ Photographs are copied into app-private storage; source files selected from the 
 
 Open this `Android` directory in Android Studio. Install Android SDK Platform 36 and Build Tools 36.0.0, and use JDK 17 or 21. The project pins Gradle 8.13, Android Gradle Plugin 8.13.2, Kotlin 2.2.21, and Compose BOM 2025.11.01.
 
-The build uses `MOLDEZ_ROBOFLOW_API_KEY` when set. In the full repository, it otherwise reads the existing `ROBOFLOW_API_KEY` assignment from `../MacOS/MacOS.py` and injects it into the generated Android build configuration. The standalone source archive does not contain that desktop file, so maintainers building the archive must set `MOLDEZ_ROBOFLOW_API_KEY` to the project service key in their build environment. The supplied APK is already configured and requires no user credential entry.
+The build uses `MOLDEZ_ROBOFLOW_API_KEY` when set. In the full repository, it otherwise reads the existing `ROBOFLOW_API_KEY` assignment from `../MacOS/MacOS.py` and injects it into the generated Android build configuration. The public standalone source archive excludes that desktop file and the raw credential, so maintainers building the archive must set `MOLDEZ_ROBOFLOW_API_KEY` to a credential with access to the project models in their build environment.
 
 There is no second hand-written key in the Android source files. A credential bundled into an APK can be extracted from that APK; it should be treated as a shared client credential.
 
@@ -72,7 +76,7 @@ With an emulator or test device connected:
 ./gradlew connectedDebugAndroidTest
 ```
 
-Installable test APK: `app/build/outputs/apk/debug/app-debug.apk`.
+Locally generated test APK: `app/build/outputs/apk/debug/app-debug.apk`. CI runs verification and does not upload APK artifacts.
 
 The debug APK uses a development signature. To publish or distribute a production release, configure signing with the project's own protected release key, build a signed release APK/AAB, and complete the chosen store's listing and account requirements. No production signing identity or store account is embedded in this project.
 

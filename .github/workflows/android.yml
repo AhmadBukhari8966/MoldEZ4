@@ -22,21 +22,11 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
-          cache: gradle
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4
       - name: Install Android build platform
         run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
       - name: Build, test, and lint
-        run: ./gradlew --no-daemon assembleDebug testDebugUnitTest lintDebug
-      - name: Upload installable test app
-        uses: actions/upload-artifact@v4
-        with:
-          name: MoldEZ-Android-debug
-          path: Android/app/build/outputs/apk/debug/app-debug.apk
-      - name: Upload verification reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: Android-verification
-          path: |
-            Android/app/build/reports/tests/testDebugUnitTest
-            Android/app/build/reports/lint-results-debug.html
+        run: ./gradlew --no-daemon --no-build-cache assembleDebug testDebugUnitTest lintDebug
+      # The APK contains the shared project credential and is distributed privately.
+      # Keep verification logs, but do not upload compiled artifacts or build caches.
