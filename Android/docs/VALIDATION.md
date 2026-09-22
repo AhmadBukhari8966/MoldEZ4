@@ -10,9 +10,19 @@ This file records verification of the Android implementation. It distinguishes l
 - Android lint.
 - Emulator navigation and lifecycle tests on phone and tablet configurations, where available.
 
+## Version 1.0.2 — three-tab navigation
+
+The Settings tab and its page are removed. The navigation destinations are **Analyze**, **Sessions**, and **Capture** on both phone and tablet layouts. Analysis records retain their saved model, threshold, preprocessing, diameter, and calibration metadata. Local verification completed September 22, 2026:
+
+- Debug APK and installed-app test APK build successfully; all 32 unit tests pass; Android lint reports zero errors.
+- All six installed-app tests pass on both phone (1080 × 2400 / 420 dpi) and tablet (1920 × 1200 / 240 dpi) emulator configurations. Navigation checks assert exactly three destinations and no Settings entry; screenshots cover Analyze, Sessions, Capture, and dark appearance.
+- Installing 1.0.2 over 1.0.1 preserves the seeded sessions file byte-for-byte. Leaving the old app on Settings, backgrounding/killing it, updating, and reopening safely displays Analyze with the three tabs.
+- The development signing certificate is unchanged, and version code increases to 3. The removed Settings enum name remains solely to decode old saved activity state; there is no Settings screen or navigation entry.
+- Saved analysis metadata and existing preferences are retained. The service configuration is unchanged; no new live cloud request was needed for this UI update.
+
 ## Version 1.0.1 — preconfigured service
 
-The privately retained Version 1.0.1 APK bundles the existing project Roboflow credential at build time and requires no API-key entry or service setup. The public preview contains source and documentation only; no APK is provided as a release asset or CI artifact. In a full repository checkout, the build reuses the existing desktop assignment unless `MOLDEZ_ROBOFLOW_API_KEY` is set. The public standalone source archive excludes that desktop file and the raw credential, so archive builds require that environment variable.
+Version 1.0.1 bundles the existing project Roboflow credential at build time and requires no API-key entry or service setup. Its preconfigured APK is available in the [public preview release](https://github.com/AhmadBukhari8966/MoldEZ4/releases/tag/android-v1.0.1); CI does not upload APK artifacts. In a full repository checkout, the build reuses the existing desktop assignment unless `MOLDEZ_ROBOFLOW_API_KEY` is set. The public standalone source archive excludes that desktop file and the raw credential, so archive builds require that environment variable.
 
 Local verification completed September 21, 2026:
 
@@ -20,7 +30,7 @@ Local verification completed September 21, 2026:
 - All six installed-app tests pass on both phone and tablet emulator configurations after clearing app data. Startup checks confirm bundled model access and the absence of API-key fields, save/remove-key controls, and setup prompts.
 - Installing 1.0.1 over the privately delivered 1.0.0 APK preserves the seeded sessions file byte-for-byte. Version code is 2 and the development signing certificate is unchanged.
 - An exact-byte check confirms the APK contains the same credential as the existing Python assignment, without displaying it. All three inference workflows use that build configuration; no new live cloud request was made for this update.
-- Refreshed phone/tablet light, dark, and Settings screenshots confirm the removed setup UI. The source archive excludes generated build files and the raw credential; standalone builds use the documented environment variable.
+- Phone/tablet light and dark screenshots confirmed the removed service-setup UI for this version. The source archive excludes generated build files and the raw credential; standalone builds use the documented environment variable.
 
 ## Version 1.0.0 results — September 21, 2026
 
@@ -34,7 +44,7 @@ Local verification completed September 21, 2026:
 - During the initial 1.0.0 validation, the existing repository credential was used only in memory for those authorized requests. Exact-byte scans then found it absent from Android source, retained test fixtures, and the 1.0.0 APK. Version 1.0.1 deliberately changes the APK configuration to include the project credential, at the user's request.
 - Debug APK and optimized unsigned release APK compile successfully. The locally tested APK uses a development signature.
 
-The public release's `SHA256SUMS.txt` covers its source archive and source guide, not the private APK. Build and test reports remain under `app/build/reports/` in the local working copy. Screenshots are in `docs/screenshots/`.
+Each public release's `SHA256SUMS.txt` identifies the included files and their checksums. Build and test reports remain under `app/build/reports/` in the local working copy. Screenshots are in `docs/screenshots/`.
 
 ## Hosted CI status
 
@@ -42,7 +52,7 @@ GitHub Actions explicitly installs the required Android SDK, then verifies the b
 
 ## Boundaries
 
-- Cloud predictions require internet and access to the configured Roboflow models. A generated APK contains its configured client credential, which is extractable from that APK. The preconfigured APK is kept private; the public source archive excludes the raw credential.
+- Cloud predictions require internet and access to the configured Roboflow models. A generated APK contains its configured client credential, which is extractable from that APK. The public source archive excludes the raw credential.
 - Emulator testing cannot establish physical-camera performance, behavior on every manufacturer's Android build, or scientific accuracy across real laboratory photographs.
 - The user selected Windows diameter/coverage adjustments. Android applies them consistently across all modes, while desktop batch/automation uses a different hardcoded diameter.
 - CLAHE and image decoding are native Android implementations; precise mask equivalence with OpenCV/Pillow must be evaluated with a representative photograph set.

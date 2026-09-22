@@ -68,7 +68,7 @@ class AnalysisEngine {
             val context = currentCoroutineContext()
             RoboflowMasks.parse(dishResponse, image.width, image.height, settings.dishConfidence, firstOnly = true) { context.ensureActive() }
         }
-        if (dish.count() == 0L) throw AnalysisException("No dish detected. Lower dish confidence or choose a clearer photo.")
+        if (dish.count() == 0L) throw AnalysisException("No dish detected. Choose a clearer photo with the entire dish visible.")
         currentCoroutineContext().ensureActive()
         onStatus("Detecting culture…")
         val cultureResponse = infer(settings.cultureModel, settings.cultureConfidence, encoded, key)
@@ -154,9 +154,9 @@ class AnalysisEngine {
 
         fun httpError(status: Int) = when (status) {
             401, 403 -> "The MoldEZ detection service could not authorize this request. Contact the project maintainer."
-            404 -> "The Roboflow model was not found. Check the project/version IDs in Settings."
+            404 -> "The detection model is unavailable. Please contact the MoldEZ project maintainer."
             413 -> "This photo is too large for Roboflow. Choose a smaller photo."
-            422 -> "Roboflow could not process this request. Check the model IDs and try another photo."
+            422 -> "Roboflow could not process this photo. Try another photo or contact the MoldEZ project maintainer."
             429 -> "The MoldEZ detection service's usage limit was reached. Try again later."
             in 500..599 -> "Roboflow is temporarily unavailable. Try again in a moment."
             in 300..399 -> "Roboflow redirected this request. Update the app before trying again."

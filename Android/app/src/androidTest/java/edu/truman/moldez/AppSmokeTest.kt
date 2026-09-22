@@ -28,16 +28,16 @@ class AppSmokeTest {
         compose.onNodeWithContentDescription("Toggle appearance").performClick()
         captureUi("dark")
         compose.onNodeWithContentDescription("Toggle appearance").performClick()
-        compose.onNodeWithText("Settings",useUnmergedTree=true).performClick()
-        compose.onNodeWithText("Make MoldEZ yours").assertIsDisplayed()
+        compose.onNodeWithText("Settings",useUnmergedTree=true).assertDoesNotExist()
         listOf("API key", "Replacement API key", "Save key", "Remove key", "Open Roboflow API settings").forEach {
             compose.onNodeWithText(it).assertDoesNotExist()
         }
-        compose.onNodeWithText("MoldEZ is ready to analyze photos. No account setup is needed.").assertExists()
-        compose.onNodeWithText("Detection preferences").assertExists()
-        captureUi("settings")
         compose.onNodeWithText("Sessions",useUnmergedTree=true).performClick()
         compose.onNodeWithText("Your research, organized").assertIsDisplayed()
+        captureUi("sessions")
+        compose.onNodeWithText("Capture",useUnmergedTree=true).performClick()
+        compose.onNodeWithText("Watch your culture grow").assertIsDisplayed()
+        captureUi("capture")
     }
 
     private fun captureUi(screen: String) {

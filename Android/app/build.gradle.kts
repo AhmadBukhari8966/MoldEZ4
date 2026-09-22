@@ -25,8 +25,8 @@ android {
         applicationId = "edu.truman.moldez"
         minSdk = 26
         targetSdk = 36
-        versionCode = 2
-        versionName = "1.0.1"
+        versionCode = 3
+        versionName = "1.0.2"
         buildConfigField("String", "ROBOFLOW_API_KEY", quotedRoboflowKey)
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true

@@ -28,5 +28,5 @@ jobs:
         run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
       - name: Build, test, and lint
         run: ./gradlew --no-daemon --no-build-cache assembleDebug testDebugUnitTest lintDebug
-      # The APK contains the shared project credential and is distributed privately.
+      # APK publication is handled through explicit preview releases.
       # Keep verification logs, but do not upload compiled artifacts or build caches.

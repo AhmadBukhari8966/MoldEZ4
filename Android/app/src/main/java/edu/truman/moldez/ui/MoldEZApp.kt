@@ -4,7 +4,6 @@ package edu.truman.moldez.ui
 
 import android.Manifest
 import android.app.Activity
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -53,7 +52,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import edu.truman.moldez.R
-import edu.truman.moldez.BuildConfig
 import edu.truman.moldez.core.*
 import java.io.File
 import java.text.SimpleDateFormat
@@ -73,16 +71,20 @@ private val DarkScheme=darkColorScheme(primary=Color(0xFF69D9C8),secondary=Color
     surfaceContainerHigh=Color(0xFF25384A),surfaceContainerHighest=Color(0xFF2C4154),onSurface=Color(0xFFE0EAF3),onBackground=Color(0xFFE0EAF3))
 private enum class Destination(val label:String,val icon:ImageVector) {
     ANALYZE("Analyze",Icons.Default.Science),SESSIONS("Sessions",Icons.Default.FolderOpen),
-    CAMERA("Capture",Icons.Default.PhotoCamera),SETTINGS("Settings",Icons.Default.Settings)
+    CAMERA("Capture",Icons.Default.PhotoCamera),
+    // Preserve the serialized enum name for activity state saved before version 1.0.2.
+    SETTINGS("",Icons.Default.Science)
 }
+private val destinations=listOf(Destination.ANALYZE,Destination.SESSIONS,Destination.CAMERA)
 fun number(value:Double,digits:Int=2)=String.format(Locale.US,"%.${digits}f",value)
 fun date(value:Long)=SimpleDateFormat("MMM d, yyyy · HH:mm",Locale.getDefault()).format(Date(value))
 
 @Composable
 fun MoldEZApp(vm:MoldEZViewModel=viewModel()) {
     val state=vm.state
-    var screen by rememberSaveable { mutableStateOf(Destination.ANALYZE) }
-    BackHandler(enabled=screen!=Destination.ANALYZE) {vm.stopAutomation();screen=Destination.ANALYZE}
+    var savedScreen by rememberSaveable { mutableStateOf(Destination.ANALYZE) }
+    val screen=savedScreen.takeIf { it in destinations } ?: Destination.ANALYZE
+    BackHandler(enabled=screen!=Destination.ANALYZE) {vm.stopAutomation();savedScreen=Destination.ANALYZE}
     val context=LocalContext.current
     SideEffect {
         (context as? Activity)?.let { activity->
@@ -134,32 +136,31 @@ fun MoldEZApp(vm:MoldEZViewModel=viewModel()) {
                 } },actions={
                     IconButton(onClick={vm.setDarkMode(!state.darkMode)}) { Icon(if(state.darkMode) Icons.Default.LightMode else Icons.Default.DarkMode,"Toggle appearance") }
                 },colors=TopAppBarDefaults.topAppBarColors(containerColor=Navy,titleContentColor=Color.White,actionIconContentColor=Color.White)) },
-                bottomBar={ if(!wide) NavigationBar { Destination.entries.forEach { destination->
-                    NavigationBarItem(selected=screen==destination,onClick={ if(screen!=destination) vm.stopAutomation(); screen=destination },
+                bottomBar={ if(!wide) NavigationBar { destinations.forEach { destination->
+                    NavigationBarItem(selected=screen==destination,onClick={ if(screen!=destination) vm.stopAutomation(); savedScreen=destination },
                         icon={Icon(destination.icon,destination.label)},label={Text(destination.label)})
                 } } },snackbarHost={ SnackbarHost(snackbar) }
             ) { padding->
                 Row(Modifier.padding(padding).fillMaxSize()) {
-                    if(wide) NavigationRail(Modifier.fillMaxHeight()) { Spacer(Modifier.height(16.dp)); Destination.entries.forEach { destination->
-                        NavigationRailItem(selected=screen==destination,onClick={if(screen!=destination) vm.stopAutomation(); screen=destination},
+                    if(wide) NavigationRail(Modifier.fillMaxHeight()) { Spacer(Modifier.height(16.dp)); destinations.forEach { destination->
+                        NavigationRailItem(selected=screen==destination,onClick={if(screen!=destination) vm.stopAutomation(); savedScreen=destination},
                             icon={Icon(destination.icon,destination.label)},label={Text(destination.label)})
                     } }
                     Column(Modifier.weight(1f).fillMaxHeight()) {
                         if(state.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
                         if(state.loading) Box(Modifier.fillMaxSize(),contentAlignment=Alignment.Center) { CircularProgressIndicator() }
                         else when(screen) {
-                            Destination.ANALYZE->AnalyzeScreen(state,vm,wide,
+                            Destination.ANALYZE,Destination.SETTINGS->AnalyzeScreen(state,vm,wide,
                                 onPick={photoPicker.launch(arrayOf("image/*"))},onCamera={takePhoto()},
                                 onBatch={batchPicker.launch(arrayOf("image/*"))},onSaveImage={exportImage.launch("MoldEZ_detection.png")})
                             Destination.SESSIONS->SessionsScreen(state,vm,
-                                onOpen={vm.openRecord(it); screen=Destination.ANALYZE},
+                                onOpen={vm.openRecord(it); savedScreen=Destination.ANALYZE},
                                 onImport={import.launch(arrayOf("application/zip","application/octet-stream","application/json"))},
                                 onExport={type->if(vm.prepareExport()) {
                                     val name=(state.activeSession?.name ?: "MoldEZ").replace(Regex("[^A-Za-z0-9_-]"),"_")
                                     when(type) { "PDF"->exportPdf.launch("${name}_report.pdf"); "CSV"->exportCsv.launch("${name}_results.csv"); else->exportSession.launch("$name.moldez.zip") }
                                 }})
                             Destination.CAMERA->CaptureScreen(state,vm)
-                            Destination.SETTINGS->SettingsScreen(state,vm)
                         }
                         if(state.busy) Row(Modifier.fillMaxWidth().padding(horizontal=16.dp),verticalAlignment=Alignment.CenterVertically) {
                             Text(state.status,Modifier.weight(1f),style=MaterialTheme.typography.bodySmall)
@@ -441,46 +442,4 @@ private fun ComparisonDialog(first:AnalysisRecord,second:AnalysisRecord,onDismis
             Metric("Equivalent radial growth","${number(c.radialMmPerHour,4)} mm/hour")
         }.onFailure {Text(it.message ?: "Unable to compare",color=MaterialTheme.colorScheme.error)}
     }},confirmButton={TextButton(onClick=onDismiss){Text("Done")}})
-}
-
-@Composable
-private fun SettingsScreen(state:AppUiState,vm:MoldEZViewModel) {
-    val context=LocalContext.current
-    var dish by remember(state.settings.dishConfidence) {mutableFloatStateOf(state.settings.dishConfidence)}
-    var culture by remember(state.settings.cultureConfidence) {mutableFloatStateOf(state.settings.cultureConfidence)}
-    var dishModel by remember(state.settings.dishModel) {mutableStateOf(state.settings.dishModel)}
-    var cultureModel by remember(state.settings.cultureModel) {mutableStateOf(state.settings.cultureModel)}
-    var clip by remember(state.settings.claheClip) {mutableStateOf(state.settings.claheClip.toString())}
-    var tiles by remember(state.settings.claheTiles) {mutableStateOf(state.settings.claheTiles.toString())}
-    var windows by remember(state.settings.calibration) {mutableStateOf(state.settings.calibration==Calibration.WINDOWS)}
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(16.dp)) {
-        PageHeading("Make MoldEZ yours","Analysis preferences and appearance.")
-        SectionCard("Detection service","MoldEZ is ready to analyze photos. No account setup is needed.") {
-            Text("Detection uses the MoldEZ project's Roboflow service and requires internet. Photos are sent over HTTPS; saved results stay on this device unless you export them.",style=MaterialTheme.typography.bodySmall)
-        }
-        SectionCard("Detection preferences","Changing a model or threshold requires another detection.") {
-            Text("Dish confidence: ${(dish*100).roundToInt()}%")
-            Slider(dish,{dish=it},valueRange=.01f..1f,enabled=!state.busy,modifier=Modifier.semantics {contentDescription="Dish confidence"})
-            Text("Culture confidence: ${(culture*100).roundToInt()}%")
-            Slider(culture,{culture=it},valueRange=.01f..1f,enabled=!state.busy,modifier=Modifier.semantics {contentDescription="Culture confidence"})
-            OutlinedTextField(dishModel,{dishModel=it},label={Text("Dish model · project/version")},singleLine=true,modifier=Modifier.fillMaxWidth())
-            OutlinedTextField(cultureModel,{cultureModel=it},label={Text("Culture model · project/version")},singleLine=true,modifier=Modifier.fillMaxWidth())
-            OutlinedTextField(clip,{clip=it},label={Text("CLAHE clip limit")},keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Decimal),singleLine=true,modifier=Modifier.fillMaxWidth())
-            OutlinedTextField(tiles,{tiles=it},label={Text("CLAHE tiles per axis")},keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Number),singleLine=true,modifier=Modifier.fillMaxWidth())
-            Row(verticalAlignment=Alignment.CenterVertically) {Switch(windows,{windows=it});Spacer(Modifier.width(12.dp));Column {Text("Match Windows measurements");Text("+3 mm diameter · ×105 coverage",style=MaterialTheme.typography.bodySmall)}}
-            Text(if(windows) "Applied consistently to manual, batch and timed analyses. Adjusted coverage can exceed 100%." else "Standard mode uses the entered diameter and 0–100% coverage.",style=MaterialTheme.typography.bodySmall)
-            Button(onClick={
-                val parsedClip=clip.toDoubleOrNull();val parsedTiles=tiles.toIntOrNull()
-                if(parsedClip==null || parsedTiles==null) vm.error("Enter valid contrast settings.")
-                else if(vm.updateSettings(state.settings.copy(dishConfidence=dish,cultureConfidence=culture,dishModel=dishModel.trim(),cultureModel=cultureModel.trim(),
-                    claheClip=parsedClip,claheTiles=parsedTiles,calibration=if(windows) Calibration.WINDOWS else Calibration.STANDARD))) vm.notify("Analysis preferences saved")
-            },enabled=!state.busy && !state.automationRunning) {Text("Save preferences")}
-        }
-        SectionCard("About MoldEZ") {
-            Text("Culture analysis · Android ${BuildConfig.VERSION_NAME}",fontWeight=FontWeight.SemiBold)
-            Text("Developed from MoldEZ Mark IV, Truman State University. Original project: Mohammed Ayan Mahmood, Dr. Kafi R. Rahman, Dr. Hajeewaka C. Mendis, and contributors.",style=MaterialTheme.typography.bodySmall)
-            Text("Research measurements depend on the photograph, model predictions and calibration. Review masks before saving. Desktop pickle sessions require conversion; Android uses portable, data-only session bundles.",style=MaterialTheme.typography.bodySmall)
-            TextButton(onClick={runCatching {context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse("https://github.com/AhmadBukhari8966/MoldEZ4")))}}) {Text("Project and license")}
-        }
-    }
 }

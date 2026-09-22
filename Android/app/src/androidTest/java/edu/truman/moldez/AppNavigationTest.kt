@@ -18,14 +18,14 @@ class AppNavigationTest {
         }
     }
 
-    @Test fun navigationAndWindowsCalibrationAreAvailable() {
+    @Test fun threeTabNavigationAndWindowsCalibrationAreAvailable() {
         awaitStartup()
         compose.onNodeWithText("Choose photo").assertIsDisplayed()
         compose.onNodeWithText("Run detection").assertIsNotEnabled()
-        compose.onNodeWithText("Settings", useUnmergedTree = true).performClick()
-        compose.onNodeWithText("Make MoldEZ yours").assertIsDisplayed()
-        compose.onNodeWithText("Match Windows measurements").performScrollTo().assertIsDisplayed()
-        compose.onNodeWithText("+3 mm diameter · ×105 coverage").performScrollTo().assertIsDisplayed()
+        compose.onAllNodes(isSelectable()).assertCountEquals(3)
+        compose.onNodeWithText("Settings", useUnmergedTree = true).assertDoesNotExist()
+        compose.onNodeWithContentDescription("Settings").assertDoesNotExist()
+        compose.onNodeWithText("Windows mode adds 3 mm to this value.").assertIsDisplayed()
         compose.onNodeWithText("Capture", useUnmergedTree = true).performClick()
         compose.onNodeWithText("Watch your culture grow").assertIsDisplayed()
         compose.onNodeWithText("Sessions", useUnmergedTree = true).performClick()

@@ -52,7 +52,7 @@ data class Measurement(
 object Measurements {
     fun calculate(dishPixels: Long, culturePixels: Long, settings: AnalysisSettings): Measurement {
         settings.validate()
-        require(dishPixels > 0) { "No dish detected. Adjust confidence or choose another photo." }
+        require(dishPixels > 0) { "No dish detected. Choose a clearer photo with the entire dish visible." }
         require(culturePixels in 0..dishPixels) { "Culture pixels must be inside the dish." }
         val diameter = settings.diameterMm + if (settings.calibration == Calibration.WINDOWS) 3.0 else 0.0
         // Windows uses this pi approximation; retain it for numerical parity.
